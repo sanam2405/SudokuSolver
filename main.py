@@ -9,10 +9,34 @@ w = 9
 h = 9
 grid = [[0 for x in range(w)] for y in range(h)]
 
-#define global variable
-clicked = False
-counter = 0
+#button class
+class Button():
+	def __init__(self, x, y, image, scale):
+		width = image.get_width()
+		height = image.get_height()
+		self.image = pg.transform.scale(image, (int(width * scale), int(height * scale)))
+		self.rect = self.image.get_rect()
+		self.rect.topleft = (x, y)
+		self.clicked = False
 
+	def draw(self, surface):
+		action = False
+		#get mouse position
+		pos = pg.mouse.get_pos()
+
+		#check mouseover and clicked conditions
+		if self.rect.collidepoint(pos):
+			if pg.mouse.get_pressed()[0] == 1 and self.clicked == False:
+				self.clicked = True
+				action = True
+
+		if pg.mouse.get_pressed()[0] == 0:
+			self.clicked = False
+
+		#draw button on screen
+		surface.blit(self.image, (self.rect.x, self.rect.y))
+
+		return action
 
 
 def insert(win, position):
@@ -77,7 +101,7 @@ def sudoku_solver(win):
                     if isValid((i,j), k):                   
                         grid[i][j] = k
                         pg.draw.rect(win, background_color, ((j+1)*50 + buffer, (i+1)*50+ buffer,50 -2*buffer , 50 - 2*buffer))
-                        value = myfont.render(str(k), True, (0,0,0))
+                        value = myfont.render(str(k), True, (255,0,0))
                         win.blit(value, ((j+1)*50 +15,(i+1)*50+15))
                         pg.display.update()
                         pg.time.delay(25)
@@ -99,12 +123,11 @@ def sudoku_solver(win):
 
 def main():    
     pg.init()
-    win = pg.display.set_mode((WIDTH, WIDTH))
+    win = pg.display.set_mode((WIDTH, WIDTH+75))
     pg.display.set_caption("Sudoku")
     win.fill(background_color)
     myfont = pg.font.SysFont('Comic Sans MS', 35)
     
-    solve = button(250,250, 'Solve')
     
     for i in range(0,10):
         if(i%3 == 0):
@@ -122,10 +145,17 @@ def main():
                 win.blit(value, ((j+1)*50 + 15, (i+1)*50 + 15))
     pg.display.update()
         
-        
+    #load button images
+    solve_img = pg.image.load('solving.png').convert_alpha()
+
+    #create button instances
+    solve_button = Button(225,525, solve_img, 0.08)
     
-#     sudoku_solver(win)
+    
     while True: 
+        
+        if solve_button.draw(win):
+               sudoku_solver(win)
         for event in pg.event.get():
             if event.type == pg.MOUSEBUTTONUP and event.button == 1:
                 pos = pg.mouse.get_pos()
